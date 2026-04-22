@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Game Hub 3.0</title>
+
+<style>
+body{
+margin:0;
+font-family:sans-serif;
+background:#0f2027;
+color:white;
+text-align:center;
+}
+
+.screen{display:none;padding:20px;}
+.active{display:block;}
+
+button{
+padding:10px 15px;
+margin:5px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+background:#00c6ff;
+font-weight:bold;
+}
+
+.card{
+background:rgba(255,255,255,0.1);
+padding:15px;
+margin:10px auto;
+border-radius:15px;
+width:300px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:5px;
+width:250px;
+margin:auto;
+}
+
+.cell{
+background:#333;
+height:40px;
+border-radius:5px;
+cursor:pointer;
+}
+
+.mine{background:red;}
+.safe{background:green;}
+</style>
+</head>
+
+<body>
+
+<!-- МЕНЮ -->
+<div id="menu" class="screen active">
+<h1>🎮 Game Hub 3.0</h1>
+<h2>💰 <span id="coins"></span></h2>
+
+<button onclick="openScreen('games')">🎮 Игры</button>
+<button onclick="openScreen('shop')">🛒 Магазин</button>
+<button onclick="openScreen('profile')">🧍‍♂️ Профиль</button>
+<button onclick="openScreen('stats')">📊 Статистика</button>
+</div>
+
+<!-- ИГРЫ -->
+<div id="games" class="screen">
+<h2>Игры</h2>
+
+<div class="card">
+<h3>🔥 Кликер</h3>
+<button onclick="earn(10)">+10</button>
+</div>
+
+<div class="card">
+<h3>🧠 ИИ угадай число</h3>
+<input id="guess">
+<button onclick="guess()">OK</button>
+</div>
+
+<div class="card">
+<h3>💣 Мины</h3>
+<div id="mines" class="grid"></div>
+<button onclick="startMines()">Новая игра</button>
+</div>
+
+<button onclick="openScreen('menu')">⬅ Назад</button>
+</div>
+
+<!-- МАГАЗИН -->
+<div id="shop" class="screen">
+<h2>🛒 Магазин</h2>
+
+<div class="card">
+<h3>Удвоение дохода</h3>
+<button onclick="buyUpgrade()">Купить (1000)</button>
+</div>
+
+<button onclick="openScreen('menu')">⬅ Назад</button>
+</div>
+
+<!-- ПРОФИЛЬ -->
+<div id="profile" class="screen">
+<h2>🧍‍♂️ Персонаж</h2>
+
+<p>Уровень: <span id="level"></span></p>
+<p>XP: <span id="xp"></span></p>
+
+<button onclick="openScreen('menu')">⬅ Назад</button>
+</div>
+
+<!-- СТАТИСТИКА -->
+<div id="stats" class="screen">
+<h2>📊 Статистика</h2>
+
+<p>Сыграно игр: <span id="gamesPlayed"></span></p>
+<p>Побед: <span id="wins"></span></p>
+
+<button onclick="openScreen('menu')">⬅ Назад</button>
+</div>
+
+<script>
+let coins = +localStorage.coins || 1000;
+let xp = +localStorage.xp || 0;
+let level = +localStorage.level || 1;
+let gamesPlayed = +localStorage.gamesPlayed || 0;
+let wins = +localStorage.wins || 0;
+let boost = +localStorage.boost || 1;
+
+function save(){
+localStorage.coins=coins;
+localStorage.xp=xp;
+localStorage.level=level;
+localStorage.gamesPlayed=gamesPlayed;
+localStorage.wins=wins;
+localStorage.boost=boost;
+update();
+}
+
+function update(){
+document.getElementById('coins').innerText=coins;
+document.getElementById('xp').innerText=xp;
+document.getElementById('level').innerText=level;
+document.getElementById('gamesPlayed').innerText=gamesPlayed;
+document.getElementById('wins').innerText=wins;
+}
+
+function openScreen(id){
+document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+}
+
+function earn(x){
+coins+=x*boost;
+xp+=5;
+checkLevel();
+save();
+}
+
+function checkLevel(){
+if(xp>=level*100){
+xp=0;
+level++;
+alert("🎉 Новый уровень!");
+}
+}
+
+function guess(){
+let user = document.getElementById('guess').value;
+let ai = Math.floor(Math.random()*10);
+
+gamesPlayed++;
+
+if(user==ai){
+coins+=500;
+wins++;
+alert("ИИ проиграл 😎");
+}else{
+coins-=100;
+alert("ИИ выиграл 🤖");
+}
+
+save();
+}
+
+function buyUpgrade(){
+if(coins>=1000){
+coins-=1000;
+boost=2;
+alert("🚀 Буст активирован");
+save();
+}else alert("❌ Не хватает");
+}
+
+/* МИНЫ */
+let mineMap=[];
+
+function startMines(){
+let grid=document.getElementById('mines');
+grid.innerHTML='';
+mineMap=[];
+
+for(let i=0;i<25;i++){
+let cell=document.createElement('div');
+cell.className='cell';
+
+let isMine=Math.random()<0.2;
+mineMap.push(isMine);
+
+cell.onclick=()=>{
+if(isMine){
+cell.classList.add('mine');
+coins-=200;
+alert("💀 Мина!");
+}else{
+cell.classList.add('safe');
+coins+=100;
+}
+save();
+};
+
+grid.appendChild(cell);
+}
+}
+
+update();
+</script>
+
+</body>
+  </html>
